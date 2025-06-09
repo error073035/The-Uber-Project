@@ -103,6 +103,101 @@ curl -X POST http://localhost:4000/users/register \
 
 ---
 
+## Endpoint: `/users/login`
+
+### Description
+
+Authenticates a user and returns a JWT token if the credentials are valid.
+
+---
+
+### Method
+
+`POST`
+
+---
+
+### Request Body
+
+Send as `application/json`:
+
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "yourpassword"
+}
+```
+
+#### Field Requirements
+
+- `email` (string, required): Registered user's email address
+- `password` (string, required): User's password
+
+---
+
+### Responses
+
+#### Success
+
+- **Status Code:** `200 OK`
+- **Body:**
+  ```json
+  {
+    "token": "<jwt_token>",
+    "user": {
+      "_id": "user_id",
+      "fullname": {
+        "firstname": "John",
+        "lastname": "Doe"
+      },
+      "email": "john.doe@example.com"
+      // other user fields
+    }
+  }
+  ```
+
+#### Validation Error
+
+- **Status Code:** `400 Bad Request`
+- **Body:**
+  ```json
+  {
+    "errors": [
+      {
+        "msg": "Invalid email address",
+        "param": "email",
+        "location": "body"
+      }
+      // ...other errors
+    ]
+  }
+  ```
+
+#### Authentication Error
+
+- **Status Code:** `401 Unauthorized`
+- **Body:**
+  ```json
+  {
+    "message": "Invalid Email or Password"
+  }
+  ```
+
+---
+
+### Example cURL
+
+```sh
+curl -X POST http://localhost:4000/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "yourpassword"
+  }'
+```
+
+---
+
 ## Notes
 
 - Passwords are hashed before storage.
