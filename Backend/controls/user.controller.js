@@ -1,6 +1,9 @@
+const { mountpath } = require('../app');
 const userModel = require('../models/user.model');
 const userService = require('../services/user.service');
 const { validationResult } = require('express-validator');
+const blacklistTokenSchema = require('../models/blacklistToken.model');
+const jwt = require('jsonwebtoken');
 
 module.exports.registerUser = async (req, res) => {
   const errors = validationResult(req);
@@ -54,4 +57,21 @@ module.exports.loginUser = async (req, res) => {
 
 module.exports.getUserProfile = async (req, res) => {
   res.status(200).json({ user: req.user });
+}
+
+module.exports.logoutUser = async (req, res) => {
+  res.clearCookie('token');
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    await blacklistTokenSchema.create({ token, userId: decoded.userId });
+  } catch (error) {
+    if (error.code !== 11000) { // Ignore duplicate key error
+      console.error('Error blacklisting token:', error);
+      return res.status(500).json({ message: 'Internal Server Error' });
+    }
+  }
+
+  res.status(200).json({ message: 'Logged out successfully' });
 }
